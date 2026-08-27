@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "awesome_cats_frontend/**"
-      - "awesome_cats_backend/**"
+      - "frontend/**"
+      - "backend/**"
       - "kubernetes/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
@@ -20,9 +20,9 @@ concurrency:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  CLUSTER_NAME: awesome-cats-dev
-  FRONTEND_REPOSITORY: awesome-cats-dev-frontend
-  BACKEND_REPOSITORY: awesome-cats-dev-backend
+  CLUSTER_NAME: cloudops-academy-dev
+  FRONTEND_REPOSITORY: cloudops-academy-dev-frontend
+  BACKEND_REPOSITORY: cloudops-academy-dev-backend
 
 jobs:
   deploy:
@@ -43,8 +43,8 @@ jobs:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t "$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG" awesome_cats_frontend
-          docker build -t "$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG" awesome_cats_backend
+          docker build -t "$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG" frontend
+          docker build -t "$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG" backend
           docker push "$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG"
           docker push "$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG"
 
@@ -53,9 +53,9 @@ jobs:
 
       - name: Create database secret
         run: |
-          secret_json="$(aws secretsmanager get-secret-value --secret-id awesome-cats-dev/database --query SecretString --output text)"
+          secret_json="$(aws secretsmanager get-secret-value --secret-id cloudops-academy-dev/database --query SecretString --output text)"
           kubectl apply -f kubernetes/namespace.yml
-          kubectl -n awesome-cats create secret generic database \
+          kubectl -n cloudops-academy create secret generic database \
             --from-literal=PGHOST="$(jq -r .PGHOST <<<"$secret_json")" \
             --from-literal=PGPORT="$(jq -r .PGPORT <<<"$secret_json")" \
             --from-literal=PGDATABASE="$(jq -r .PGDATABASE <<<"$secret_json")" \
@@ -65,9 +65,9 @@ jobs:
 
       - name: Initialize database
         run: |
-          kubectl -n awesome-cats delete job database-init --ignore-not-found
+          kubectl -n cloudops-academy delete job database-init --ignore-not-found
           kubectl apply -f kubernetes/database-init-job.yml
-          kubectl -n awesome-cats wait --for=condition=complete job/database-init --timeout=180s
+          kubectl -n cloudops-academy wait --for=condition=complete job/database-init --timeout=180s
 
       - name: Deploy application
         env:
@@ -76,5 +76,5 @@ jobs:
         run: |
           sed "s|BACKEND_IMAGE|$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/backend.yml | kubectl apply -f -
           sed "s|FRONTEND_IMAGE|$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/frontend.yml | kubectl apply -f -
-          kubectl -n awesome-cats rollout status deployment/backend --timeout=180s
-          kubectl -n awesome-cats rollout status deployment/frontend --timeout=180s
+          kubectl -n cloudops-academy rollout status deployment/backend --timeout=180s
+          kubectl -n cloudops-academy rollout status deployment/frontend --timeout=180s

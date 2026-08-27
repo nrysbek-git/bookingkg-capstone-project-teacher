@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: database-init
-  namespace: awesome-cats
+  namespace: cloudops-academy
 spec:
   backoffLimit: 4
   template:

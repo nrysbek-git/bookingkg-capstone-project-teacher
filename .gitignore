@@ -2,6 +2,6 @@
 *.tfstate
 *.tfstate.*
 *.tfplan
-terraform-new/backend.hcl
-terraform-new/terraform.tfvars
+terraform/backend.hcl
+terraform/terraform.tfvars
 .DS_Store

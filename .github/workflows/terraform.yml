@@ -3,12 +3,12 @@ name: Terraform
 on:
   pull_request:
     paths:
-      - "terraform-new/**"
+      - "terraform/**"
       - ".github/workflows/terraform.yml"
   push:
     branches: [main]
     paths:
-      - "terraform-new/**"
+      - "terraform/**"
       - ".github/workflows/terraform.yml"
   workflow_dispatch:
     inputs:
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform-new
+        working-directory: terraform
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +53,7 @@ jobs:
         run: >-
           terraform init
           -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
-          -backend-config="key=awesome-cats/dev/terraform.tfstate"
+          -backend-config="key=cloudops-academy/dev/terraform.tfstate"
           -backend-config="region=${AWS_REGION}"
           -backend-config="encrypt=true"
           -backend-config="use_lockfile=true"

@@ -1,0 +1,5 @@
+bucket         = "YOUR-UNIQUE-TERRAFORM-STATE-BUCKET"
+key            = "cloudops-academy/dev/terraform.tfstate"
+region         = "us-east-1"
+encrypt        = true
+use_lockfile   = true
