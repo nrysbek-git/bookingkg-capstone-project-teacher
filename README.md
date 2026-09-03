@@ -1,5 +1,7 @@
 # CloudOps Academy
 
+[Русский](README.md) | [English](README_EN.md)
+
 CloudOps Academy — учебная платформа для проверки практических знаний DevOps и
 cloud engineering. Пользователь создаёт профиль, проходит assessment по Docker,
 Kubernetes, Terraform, AWS, networking и CI/CD, а результат сохраняется в
