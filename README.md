@@ -5,6 +5,14 @@ cloud engineering. Пользователь создаёт профиль, пр�
 Kubernetes, Terraform, AWS, networking и CI/CD, а результат сохраняется в
 PostgreSQL и отображается в общем leaderboard.
 
+Материалы преподавателя:
+
+- [ASSIGNMENT.md](ASSIGNMENT.md) — постановка, acceptance criteria и rubric;
+- [TEACHER_GUIDE.md](TEACHER_GUIDE.md) — организация checkpoints и защиты;
+- [REFERENCE_SOLUTION.md](REFERENCE_SOLUTION.md) — границы эталонного решения;
+- [ASSESSMENT_GUIDE.md](ASSESSMENT_GUIDE.md) — проверка и обратная связь;
+- [INFRASTRUCTURE.md](INFRASTRUCTURE.md) — запуск AWS-инфраструктуры.
+
 ## Возможности
 
 - регистрация и вход по email и паролю;
