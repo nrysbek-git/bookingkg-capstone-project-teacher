@@ -27,6 +27,8 @@ const destinations = [
 ];
 
 async function ensureSchema() {
+  if (!(await db.schema.hasTable('users'))) await db.schema.createTable('users', t => { t.increments('id').primary(); t.string('name', 100).notNullable(); t.text('email').unique().notNullable(); t.timestamp('joined').notNullable().defaultTo(db.fn.now()); });
+  if (!(await db.schema.hasTable('login'))) await db.schema.createTable('login', t => { t.increments('id').primary(); t.text('email').unique().notNullable(); t.string('hash', 100).notNullable(); });
   if (!(await db.schema.hasTable('destinations'))) await db.schema.createTable('destinations', t => { t.increments('id').primary(); t.string('slug').unique().notNullable(); t.string('title').notNullable(); t.string('location').notNullable(); t.text('description').notNullable(); t.integer('price').notNullable(); t.decimal('rating', 2, 1).notNullable(); t.text('image').notNullable(); });
   if (!(await db.schema.hasTable('bookings'))) await db.schema.createTable('bookings', t => { t.increments('id').primary(); t.integer('destination_id').references('destinations.id').notNullable(); t.string('guest_name').notNullable(); t.string('email').notNullable(); t.date('start_date').notNullable(); t.date('end_date').notNullable(); t.integer('guests').notNullable(); t.integer('total_price').notNullable(); t.string('status').notNullable().defaultTo('confirmed'); t.timestamp('created_at').defaultTo(db.fn.now()); });
   if (!(await db.schema.hasColumn('bookings', 'user_id'))) await db.schema.table('bookings', t => t.integer('user_id').references('users.id'));

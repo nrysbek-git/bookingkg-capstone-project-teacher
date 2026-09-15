@@ -2,14 +2,14 @@ services:
   database:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: cloudopsacademy
-      POSTGRES_USER: cloudops
-      POSTGRES_PASSWORD: cloudops-local
+      POSTGRES_DB: bookingkg
+      POSTGRES_USER: bookingkg
+      POSTGRES_PASSWORD: bookingkg-local
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cloudops -d cloudopsacademy"]
+      test: ["CMD-SHELL", "pg_isready -U bookingkg -d bookingkg"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,9 +20,9 @@ services:
       PORT: 3000
       PGHOST: database
       PGPORT: 5432
-      PGDATABASE: cloudopsacademy
-      PGUSER: cloudops
-      PGPASSWORD: cloudops-local
+      PGDATABASE: bookingkg
+      PGUSER: bookingkg
+      PGPASSWORD: bookingkg-local
       JWT_SECRET: bookingkg-local-development-secret
     depends_on:
       database:

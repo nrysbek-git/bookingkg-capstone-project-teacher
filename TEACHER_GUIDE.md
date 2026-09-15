@@ -44,7 +44,7 @@ application layer, containers, cloud infrastructure, Kubernetes и CI/CD в од
 4. Сопоставить ECR image tag с Git SHA.
 5. Проверить replicas, probes, services и ingress.
 6. Открыть AWS Load Balancer URL; domain/HTTPS — если применимо.
-7. Создать пользователя и сохранить assessment result в RDS.
+7. Зарегистрировать пользователя и сохранить бронирование в RDS.
 8. Удалить Pod и проверить самовосстановление.
 9. Проверить rollout/rollback и GitHub Actions через OIDC.
 10. Попросить студента объяснить полный request и secret flow.
@@ -54,4 +54,3 @@ application layer, containers, cloud infrastructure, Kubernetes и CI/CD в од
 Зафиксируйте баллы и feedback до cleanup. Затем убедитесь, что дорогостоящие AWS
 resources удалены. Не требуйте удаления общего course infrastructure или remote
 state до подтверждения преподавателя.
-

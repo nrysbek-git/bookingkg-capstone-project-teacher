@@ -9,6 +9,5 @@ WORKDIR /app
 USER node
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node package.json server.js ./
-COPY --chown=node:node controllers ./controllers
 EXPOSE 3000
 CMD ["node", "server.js"]
