@@ -1,3 +1,5 @@
+name: bookingkg-capstone
+
 services:
   database:
     image: postgres:16-alpine
