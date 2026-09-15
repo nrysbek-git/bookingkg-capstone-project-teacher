@@ -1,4 +1,4 @@
-# Teacher Guide — CloudOps Academy Capstone
+# Teacher Guide — BookingKG Capstone
 
 ## Назначение
 
@@ -7,7 +7,7 @@
 application layer, containers, cloud infrastructure, Kubernetes и CI/CD в одну
 воспроизводимую систему.
 
-Студент получает только repository `cloudops-capstone-starter`. Этот repository
+Студент получает только repository `bookingkg-capstone-starter`. Этот repository
 с эталонной инфраструктурой студентам не выдаётся.
 
 ## Рекомендуемый формат

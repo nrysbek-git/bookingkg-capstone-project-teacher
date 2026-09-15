@@ -1,14 +1,14 @@
-# CloudOps Academy
+# BookingKG
 
 [Русский](README.md) | [English](README_EN.md)
 
-CloudOps Academy is an educational platform for assessing practical DevOps and
+BookingKG is an educational platform for assessing practical DevOps and
 cloud engineering skills. Users create profiles, complete an assessment covering
 Docker, Kubernetes, Terraform, AWS, networking, and CI/CD, and save their scores
 to a shared PostgreSQL leaderboard.
 
 This repository is the **instructor reference implementation**. Students should
-receive the separate `cloudops-capstone-project-starter` repository, which does
+receive the separate `bookingkg-capstone-project-starter` repository, which does
 not contain ready-made infrastructure.
 
 ## Instructor materials
@@ -32,7 +32,7 @@ not contain ready-made infrastructure.
 
 ## Application preview
 
-![CloudOps Academy hero](frontend/src/assets/cloudops-hero.png)
+![BookingKG hero](frontend/src/assets/bookingkg-hero.png)
 
 | Sign in | Create account |
 | --- | --- |

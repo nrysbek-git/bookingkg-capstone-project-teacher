@@ -4,6 +4,11 @@ resource "random_password" "database" {
   override_special = "!#$%&*+-=?"
 }
 
+resource "random_password" "jwt" {
+  length  = 48
+  special = false
+}
+
 resource "aws_security_group" "database" {
   name_prefix = "${local.name}-postgres-"
   description = "PostgreSQL access from the EKS worker security group"
@@ -69,5 +74,6 @@ resource "aws_secretsmanager_secret_version" "database" {
     PGDATABASE = var.db_name
     PGUSER     = var.db_username
     PGPASSWORD = random_password.database.result
+    JWT_SECRET = random_password.jwt.result
   })
 }

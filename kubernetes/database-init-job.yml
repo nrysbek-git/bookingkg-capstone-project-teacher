@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: database-init
-  namespace: cloudops-academy
+  namespace: bookingkg
 spec:
   backoffLimit: 4
   template:
@@ -20,14 +20,43 @@ spec:
               psql -v ON_ERROR_STOP=1 <<'SQL'
               CREATE TABLE IF NOT EXISTS users (
                 id serial PRIMARY KEY,
-                name varchar(100),
+                name varchar(100) NOT NULL,
                 email text UNIQUE NOT NULL,
-                score bigint DEFAULT 0,
                 joined timestamp NOT NULL
               );
               CREATE TABLE IF NOT EXISTS login (
                 id serial PRIMARY KEY,
                 email text UNIQUE NOT NULL,
                 hash varchar(100) NOT NULL
+              );
+              CREATE TABLE IF NOT EXISTS destinations (
+                id serial PRIMARY KEY,
+                slug varchar(255) UNIQUE NOT NULL,
+                title varchar(255) NOT NULL,
+                location varchar(255) NOT NULL,
+                description text NOT NULL,
+                price integer NOT NULL,
+                rating numeric(2,1) NOT NULL,
+                image text NOT NULL
+              );
+              CREATE TABLE IF NOT EXISTS bookings (
+                id serial PRIMARY KEY,
+                destination_id integer NOT NULL REFERENCES destinations(id),
+                user_id integer REFERENCES users(id),
+                guest_name varchar(255) NOT NULL,
+                email varchar(255) NOT NULL,
+                start_date date NOT NULL,
+                end_date date NOT NULL,
+                guests integer NOT NULL,
+                total_price integer NOT NULL,
+                extras text NOT NULL DEFAULT '',
+                discount integer NOT NULL DEFAULT 0,
+                status varchar(32) NOT NULL DEFAULT 'confirmed',
+                created_at timestamp DEFAULT CURRENT_TIMESTAMP
+              );
+              CREATE TABLE IF NOT EXISTS favorites (
+                user_id integer REFERENCES users(id) ON DELETE CASCADE,
+                destination_id integer REFERENCES destinations(id) ON DELETE CASCADE,
+                PRIMARY KEY (user_id, destination_id)
               );
               SQL

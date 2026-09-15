@@ -20,9 +20,9 @@ concurrency:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  CLUSTER_NAME: cloudops-academy-dev
-  FRONTEND_REPOSITORY: cloudops-academy-dev-frontend
-  BACKEND_REPOSITORY: cloudops-academy-dev-backend
+  CLUSTER_NAME: bookingkg-dev
+  FRONTEND_REPOSITORY: bookingkg-dev-frontend
+  BACKEND_REPOSITORY: bookingkg-dev-backend
 
 jobs:
   deploy:
@@ -53,21 +53,22 @@ jobs:
 
       - name: Create database secret
         run: |
-          secret_json="$(aws secretsmanager get-secret-value --secret-id cloudops-academy-dev/database --query SecretString --output text)"
+          secret_json="$(aws secretsmanager get-secret-value --secret-id bookingkg-dev/database --query SecretString --output text)"
           kubectl apply -f kubernetes/namespace.yml
-          kubectl -n cloudops-academy create secret generic database \
+          kubectl -n bookingkg create secret generic database \
             --from-literal=PGHOST="$(jq -r .PGHOST <<<"$secret_json")" \
             --from-literal=PGPORT="$(jq -r .PGPORT <<<"$secret_json")" \
             --from-literal=PGDATABASE="$(jq -r .PGDATABASE <<<"$secret_json")" \
             --from-literal=PGUSER="$(jq -r .PGUSER <<<"$secret_json")" \
             --from-literal=PGPASSWORD="$(jq -r .PGPASSWORD <<<"$secret_json")" \
+            --from-literal=JWT_SECRET="$(jq -r .JWT_SECRET <<<"$secret_json")" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Initialize database
         run: |
-          kubectl -n cloudops-academy delete job database-init --ignore-not-found
+          kubectl -n bookingkg delete job database-init --ignore-not-found
           kubectl apply -f kubernetes/database-init-job.yml
-          kubectl -n cloudops-academy wait --for=condition=complete job/database-init --timeout=180s
+          kubectl -n bookingkg wait --for=condition=complete job/database-init --timeout=180s
 
       - name: Deploy application
         env:
@@ -76,5 +77,5 @@ jobs:
         run: |
           sed "s|BACKEND_IMAGE|$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/backend.yml | kubectl apply -f -
           sed "s|FRONTEND_IMAGE|$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/frontend.yml | kubectl apply -f -
-          kubectl -n cloudops-academy rollout status deployment/backend --timeout=180s
-          kubectl -n cloudops-academy rollout status deployment/frontend --timeout=180s
+          kubectl -n bookingkg rollout status deployment/backend --timeout=180s
+          kubectl -n bookingkg rollout status deployment/frontend --timeout=180s

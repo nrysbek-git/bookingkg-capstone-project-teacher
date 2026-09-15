@@ -1,231 +1,54 @@
 const express = require('express');
-const bcrypt = require('bcrypt-nodejs')
 const cors = require('cors');
 const knex = require('knex');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsDoc = require("swagger-jsdoc");
-
-const register = require('./controllers/register');
-const signin = require('./controllers/signin');
-const score = require('./controllers/score');
-const profile = require('./controllers/profile');
-
+const bcrypt = require('bcrypt-nodejs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const db = knex({
-  client: 'pg',
-  connection: {
-    host: process.env.PGHOST,
-    user: process.env.PGUSER,
-    database: process.env.PGDATABASE,
-    password: process.env.PGPASSWORD,
-  }
-});
-
+const db = knex({ client: 'pg', connection: { host: process.env.PGHOST, user: process.env.PGUSER, database: process.env.PGDATABASE, password: process.env.PGPASSWORD } });
 const app = express();
-app.use(express.json())
+const jwtSecret = process.env.JWT_SECRET || 'bookingkg-local-secret';
+app.use(express.json());
 app.use(cors());
 
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: "CloudOps Academy API",
-      version: '1.0.0',
-      description: 'REST API for the CloudOps Academy learning platform',
-      contact: {
-        name : "Syimyk Zhantoroev",
-        email: 's.m.zhantoroev@gmail.com',
-      }
-    }
-  },
-  apis: ['server.js']
-};
+const destinations = [
+  { slug: 'issyk-kul', title: 'Иссык-Куль', location: 'Чолпон-Ата', description: 'Отдых у высокогорного озера, пляж и прогулка на катере.', price: 4500, rating: 4.9, image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'karakol', title: 'Каракол', location: 'Иссык-Кульская область', description: 'Горный маршрут, ущелье Алтын-Арашан и местная кухня.', price: 6200, rating: 4.8, image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'son-kul', title: 'Сон-Куль', location: 'Нарынская область', description: 'Ночь в юрте, звёздное небо и знакомство с кочевой культурой.', price: 5800, rating: 4.9, image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'ala-archa', title: 'Ала-Арча', location: 'Чуйская область', description: 'Однодневный поход по национальному парку недалеко от Бишкека.', price: 2500, rating: 4.7, image: 'https://images.unsplash.com/photo-1464278533981-50106e6176b1?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'jyrgalan', title: 'Жыргалан', location: 'Иссык-Кульская область', description: 'Тихая горная долина, конные прогулки и маршруты среди еловых лесов.', price: 5400, rating: 4.8, image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'sary-chelek', title: 'Сары-Челек', location: 'Джалал-Абадская область', description: 'Биосферный заповедник, ореховые леса и прозрачное горное озеро.', price: 6700, rating: 4.9, image: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'arslanbob', title: 'Арсланбоб', location: 'Джалал-Абадская область', description: 'Древнейшие ореховые леса, водопады и гостеприимство местных семей.', price: 4900, rating: 4.8, image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'tash-rabat', title: 'Таш-Рабат', location: 'Нарынская область', description: 'Исторический караван-сарай на Великом шёлковом пути и ночь в юрте.', price: 7100, rating: 4.9, image: 'https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'skazka', title: 'Каньон Сказка', location: 'Иссык-Кульская область', description: 'Марсианские пейзажи, красные скалы и панорама южного берега озера.', price: 3200, rating: 4.7, image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'kel-suu', title: 'Кель-Суу', location: 'Нарынская область', description: 'Экспедиция к удалённому бирюзовому озеру среди отвесных горных стен.', price: 8900, rating: 5.0, image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'osh', title: 'Ош и Сулайман-Тоо', location: 'Ошская область', description: 'Древний город, восточный базар и священная гора в центре Оша.', price: 4300, rating: 4.7, image: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80' },
+  { slug: 'chong-kemin', title: 'Чон-Кемин', location: 'Чуйская область', description: 'Рафтинг, конные маршруты и спокойный отдых в зелёной долине.', price: 3900, rating: 4.6, image: 'https://images.unsplash.com/photo-1464823063530-08f10ed1a2dd?auto=format&fit=crop&w=1200&q=80' },
+];
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+async function ensureSchema() {
+  if (!(await db.schema.hasTable('destinations'))) await db.schema.createTable('destinations', t => { t.increments('id').primary(); t.string('slug').unique().notNullable(); t.string('title').notNullable(); t.string('location').notNullable(); t.text('description').notNullable(); t.integer('price').notNullable(); t.decimal('rating', 2, 1).notNullable(); t.text('image').notNullable(); });
+  if (!(await db.schema.hasTable('bookings'))) await db.schema.createTable('bookings', t => { t.increments('id').primary(); t.integer('destination_id').references('destinations.id').notNullable(); t.string('guest_name').notNullable(); t.string('email').notNullable(); t.date('start_date').notNullable(); t.date('end_date').notNullable(); t.integer('guests').notNullable(); t.integer('total_price').notNullable(); t.string('status').notNullable().defaultTo('confirmed'); t.timestamp('created_at').defaultTo(db.fn.now()); });
+  if (!(await db.schema.hasColumn('bookings', 'user_id'))) await db.schema.table('bookings', t => t.integer('user_id').references('users.id'));
+  if (!(await db.schema.hasColumn('bookings', 'extras'))) await db.schema.table('bookings', t => t.text('extras').notNullable().defaultTo(''));
+  if (!(await db.schema.hasColumn('bookings', 'discount'))) await db.schema.table('bookings', t => t.integer('discount').notNullable().defaultTo(0));
+  if (!(await db.schema.hasTable('favorites'))) await db.schema.createTable('favorites', t => { t.integer('user_id').references('users.id').onDelete('CASCADE'); t.integer('destination_id').references('destinations.id').onDelete('CASCADE'); t.primary(['user_id', 'destination_id']); });
+  for (const item of destinations) if (!(await db('destinations').where({ slug: item.slug }).first())) await db('destinations').insert(item);
+}
 
+app.get('/', (_req, res) => res.json({ service: 'BookingKG API', status: 'работает' }));
+app.get('/health', async (_req, res) => { try { await db.raw('select 1'); res.json({ status: 'ok' }); } catch (_error) { res.status(503).json({ status: 'база данных недоступна' }); } });
+const authenticate = (req, res, next) => { try { const value = req.headers.authorization || ''; req.user = jwt.verify(value.replace(/^Bearer\s+/i, ''), jwtSecret); next(); } catch (_error) { res.status(401).json({ error: 'Необходимо войти в аккаунт' }); } };
+app.post('/auth/register', async (req, res, next) => { try { const name = String(req.body.name || '').trim(); const email = String(req.body.email || '').trim().toLowerCase(); const password = String(req.body.password || ''); if (name.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || password.length < 6) return res.status(400).json({ error: 'Укажите имя, корректный email и пароль от 6 символов' }); const exists = await db('users').whereRaw('LOWER(email) = ?', [email]).first(); if (exists) return res.status(409).json({ error: 'Этот email уже зарегистрирован' }); const user = await db.transaction(async trx => { const [created] = await trx('users').insert({ name, email, joined: new Date() }).returning(['id', 'name', 'email']); await trx('login').insert({ email, hash: bcrypt.hashSync(password) }); return created; }); const token = jwt.sign(user, jwtSecret, { expiresIn: '7d' }); res.status(201).json({ user, token }); } catch (e) { next(e); } });
+app.post('/auth/login', async (req, res, next) => { try { const email = String(req.body.email || '').trim().toLowerCase(); const credentials = await db('login').whereRaw('LOWER(email) = ?', [email]).first(); if (!credentials || !bcrypt.compareSync(String(req.body.password || ''), credentials.hash)) return res.status(401).json({ error: 'Неверный email или пароль' }); const user = await db('users').select('id', 'name', 'email').whereRaw('LOWER(email) = ?', [email]).first(); const token = jwt.sign(user, jwtSecret, { expiresIn: '7d' }); res.json({ user, token }); } catch (e) { next(e); } });
+app.get('/destinations', async (_req, res, next) => { try { res.json(await db('destinations').orderBy('id')); } catch (e) { next(e); } });
+app.get('/destinations/:id/availability', async (req, res, next) => { try { const { startDate, endDate } = req.query; if (!startDate || !endDate || new Date(endDate) <= new Date(startDate)) return res.status(400).json({ error: 'Укажите корректные даты' }); const result = await db('bookings').where({ destination_id: req.params.id, status: 'confirmed' }).where('start_date', '<', endDate).andWhere('end_date', '>', startDate).sum('guests as reserved').first(); const available = Math.max(0, 12 - Number(result.reserved || 0)); res.json({ capacity: 12, available }); } catch (e) { next(e); } });
+app.get('/favorites', authenticate, async (req, res, next) => { try { const rows = await db('favorites').select('destination_id').where({ user_id: req.user.id }); res.json(rows.map(row => row.destination_id)); } catch (e) { next(e); } });
+app.post('/favorites/:destinationId', authenticate, async (req, res, next) => { try { await db('favorites').insert({ user_id: req.user.id, destination_id: req.params.destinationId }).onConflict(['user_id', 'destination_id']).ignore(); res.status(201).json({ saved: true }); } catch (e) { next(e); } });
+app.delete('/favorites/:destinationId', authenticate, async (req, res, next) => { try { await db('favorites').where({ user_id: req.user.id, destination_id: req.params.destinationId }).del(); res.json({ saved: false }); } catch (e) { next(e); } });
+app.get('/bookings', authenticate, async (req, res, next) => { try { const rows = await db('bookings as b').join('destinations as d', 'd.id', 'b.destination_id').select('b.*', 'd.title', 'd.location', 'd.image').where('b.user_id', req.user.id).orderBy('b.created_at', 'desc'); res.json(rows); } catch (e) { next(e); } });
+app.post('/bookings', authenticate, async (req, res, next) => { try { const { destinationId, startDate, endDate, guests, extras = [], promoCode = '' } = req.body; const count = Number(guests); const nights = Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000); if (!destinationId || !Number.isInteger(count) || count < 1 || nights < 1) return res.status(400).json({ error: 'Проверьте даты и количество гостей' }); const destination = await db('destinations').where({ id: destinationId }).first(); if (!destination) return res.status(404).json({ error: 'Направление не найдено' }); const occupied = await db('bookings').where({ destination_id: destinationId, status: 'confirmed' }).where('start_date', '<', endDate).andWhere('end_date', '>', startDate).sum('guests as total').first(); if (Number(occupied.total || 0) + count > 12) return res.status(409).json({ error: 'На выбранные даты недостаточно свободных мест' }); const prices = { transfer: 1200, guide: 1800, meals: 900 }; const validExtras = extras.filter(x => prices[x]); const base = destination.price * count * nights; const extrasTotal = validExtras.reduce((sum, x) => sum + prices[x] * count, 0); const discount = String(promoCode).trim().toUpperCase() === 'NOMAD10' ? Math.round((base + extrasTotal) * .1) : 0; const [booking] = await db('bookings').insert({ destination_id: destination.id, user_id: req.user.id, guest_name: req.user.name, email: req.user.email, start_date: startDate, end_date: endDate, guests: count, extras: validExtras.join(','), discount, total_price: base + extrasTotal - discount }).returning('*'); res.status(201).json({ ...booking, title: destination.title }); } catch (e) { next(e); } });
+app.patch('/bookings/:id/cancel', authenticate, async (req, res, next) => { try { const [booking] = await db('bookings').where({ id: req.params.id, user_id: req.user.id }).update({ status: 'cancelled' }).returning('*'); if (!booking) return res.status(404).json({ error: 'Бронирование не найдено' }); res.json(booking); } catch (e) { next(e); } });
+app.use((error, _req, res, _next) => { console.error(error); res.status(500).json({ error: 'Ошибка сервера' }); });
 
-
-app.get('/', (req, res) => {
-  res.send('it is working')
-})
-
-app.get('/health', async (req, res) => {
-  try {
-    await db.raw('select 1');
-    res.status(200).json({ status: 'ok' });
-  } catch (error) {
-    res.status(503).json({ status: 'database unavailable' });
-  }
-})
-/**
- * @swagger
- * /: 
- *    get:
- *      description: To check is it working or not
- *      responses:
- *        200:
- *          description: It is working
- *        404:
- *          description: Something wrong
- */
-
-app.get('/all', (req, res) => {
-  db.select('*').from('users')
-  .then(user => {
-    if(user.length) {
-      res.json(user);
-    } else {
-      res.status(400).json('user not found');
-    }
-  })
-  .catch(err => res.status(404).json('something wrong'))
-})
-/**
- * @swagger
- * /all: 
- *    get:
- *      summary: get all users
- *      description: Get all users
- *      responses: 
- *        200:
- *          description: Success
- *        404:
- *          description: Something wrong
- */
-
-app.get('/all/:id', (req, res) => {
-  const { id } = req.params;
-  db.select('*').from('users').where({id})
-  .then(user => {
-    if(user.length) {
-      res.json(user[0]);
-    } else {
-      res.status(400).json('user not found');
-    }
-  })
-  .catch(err => res.status(404).json('something wrong'))
-})
-/**
- * @swagger
- * /all/{id}: 
- *    get:
- *      summary: get single user by id
- *      description: get defined user information
- *      parameters:
- *        - in: path
- *          name: id
- *          schema:
- *            type: integer
- *            required: true
- *      responses: 
- *        200: 
- *          description: Success
- *        404:
- *          description: Something wrong
- */
-
-app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt)});
-/**
- * @swagger
- * /register: 
- *    post:
- *      summary: register user
- *      description: register a new user
- *      requestBody:
- *        content:
- *          application/json:
- *            schema:
- *              properties:
- *                name:
- *                  type: string
- *                email:
- *                  type: string
- *                password:
- *                  type: string
- *              example:
- *                name: Your name
- *                email: your@email.com
- *                password: "123"
- *      responses: 
- *        200:
- *          description: User created succesfully
- *        400:
- *          description: Bad Request. What are you doing?
- *        500:
- *          description: Failure in creating user
- */
-
-
- app.post('/signin', signin.handleSignin(db, bcrypt));
-/**
- * @swagger
- * /signin: 
- *    post:
- *      description: sign in
- *      requestBody:
- *        content:
- *          application/json:
- *            schema:
- *              properties:
- *                email:
- *                  type: string
- *                password:
- *                  type: string
- *              example:
- *                email: your@email.com
- *                password: "123"
- *      responses: 
- *        200:
- *          description: succes
- *        400:
- *          description: wrong credentials
- *        500:
- *          description: failure
- */
-
-app.get('/profile/:id', (req, res) => { profile.handleProfile(req, res, db)})
-/**
- * @swagger
- * /profile/{id}: 
- *    get:
- *      description: get user profile by id
- *      parameters:
- *        - in: path
- *          name: id
- *          schema:
- *            type: integer
- *            required: true
- *      responses: 
- *        200: 
- *          description: Success
- */
-
-app.put('/score', (req, res) => {score.handleScore(req, res, db)})
-
-/**
- * @swagger
- * /score: 
- *    put:
- *      description: update user score
- *      requestBody:
- *        content:
- *          application/json:
- *            schema:
- *              properties:
- *                id:
- *                  type: number
- *                score:
- *                  type: number
- *              example:
- *                id: 17
- *                score: 100
- *      responses: 
- *        200: 
- *          description: Success
- */
-
-app.listen(process.env.PORT || 3000, ()=> {
-  console.log(`app is working`)
-})
+ensureSchema().then(() => app.listen(process.env.PORT || 3000, () => console.log('BookingKG API работает'))).catch(error => { console.error(error); process.exit(1); });

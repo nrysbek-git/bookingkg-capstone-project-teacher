@@ -23,6 +23,7 @@ services:
       PGDATABASE: cloudopsacademy
       PGUSER: cloudops
       PGPASSWORD: cloudops-local
+      JWT_SECRET: bookingkg-local-development-secret
     depends_on:
       database:
         condition: service_healthy

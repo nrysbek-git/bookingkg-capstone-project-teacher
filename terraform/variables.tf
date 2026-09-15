@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "Short name used as a prefix for AWS resources."
   type        = string
-  default     = "cloudops-academy"
+  default     = "bookingkg"
 }
 
 variable "environment" {
@@ -25,13 +25,13 @@ variable "vpc_cidr" {
 variable "db_name" {
   description = "Initial PostgreSQL database name."
   type        = string
-  default     = "cloudopsacademy"
+  default     = "bookingkg"
 }
 
 variable "db_username" {
   description = "PostgreSQL administrator username."
   type        = string
-  default     = "cloudops_admin"
+  default     = "bookingkg_admin"
 }
 
 variable "github_repository" {

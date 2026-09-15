@@ -1,15 +1,16 @@
-# CloudOps Academy — итоговый DevOps Capstone
+# BookingKG — итоговый DevOps Capstone
 
 ## 1. Сценарий проекта
 
-Команда разработки передала вам готовое приложение **CloudOps Academy**:
+Команда разработки передала вам готовое приложение **BookingKG**:
 
 - `frontend/` — React-приложение;
 - `backend/` — REST API на Node.js/Express;
 - `database/init.sql` — исходная схема PostgreSQL.
 
-Приложение позволяет студентам зарегистрироваться, пройти DevOps assessment,
-сохранить результат и увидеть leaderboard. Ваша роль — **DevOps engineer**.
+Приложение позволяет путешественникам зарегистрироваться, выбрать направление,
+добавить тур в избранное, проверить свободные даты, оформить и отменить
+бронирование. Ваша роль — **DevOps engineer**.
 Изменять бизнес-логику frontend/backend не требуется. Вы должны упаковать
 приложение в containers, создать облачную инфраструктуру, развернуть workload в
 Kubernetes и построить безопасный CI/CD process.
@@ -165,8 +166,8 @@ backend/.dockerignore
 ### Acceptance criteria
 
 ```bash
-docker build -t cloudops-frontend:test frontend
-docker build -t cloudops-backend:test backend
+docker build -t bookingkg-frontend:test frontend
+docker build -t bookingkg-backend:test backend
 docker image ls
 ```
 
@@ -207,7 +208,7 @@ curl http://localhost:8080/api/health
 
 - database и backend имеют status `healthy`;
 - приложение открывается на `http://localhost:8080`;
-- регистрация, вход, assessment и leaderboard работают;
+- регистрация, вход, каталог, избранное и бронирование работают;
 - данные сохраняются после `docker compose restart`;
 - `docker compose down --volumes` создаёт чистую БД при следующем запуске.
 
@@ -272,8 +273,8 @@ terraform plan
 Через Terraform создать private repositories:
 
 ```text
-cloudops-academy-frontend
-cloudops-academy-backend
+bookingkg-frontend
+bookingkg-backend
 ```
 
 Настроить:
@@ -287,8 +288,8 @@ cloudops-academy-backend
 
 ```bash
 aws ecr describe-repositories
-aws ecr list-images --repository-name cloudops-academy-frontend
-aws ecr list-images --repository-name cloudops-academy-backend
+aws ecr list-images --repository-name bookingkg-frontend
+aws ecr list-images --repository-name bookingkg-backend
 ```
 
 - оба images существуют в ECR;
@@ -396,7 +397,7 @@ Source of truth — AWS Secrets Manager. Для передачи secret в Kuber
 
 ### Требуется
 
-Создать отдельный namespace `cloudops-academy` и manifests для frontend/backend.
+Создать отдельный namespace `bookingkg` и manifests для frontend/backend.
 
 Каждый Deployment должен иметь:
 
@@ -421,11 +422,11 @@ Backend Service не должен быть `LoadBalancer` или `NodePort`.
 ### Acceptance criteria
 
 ```bash
-kubectl -n cloudops-academy get deployments
-kubectl -n cloudops-academy get pods
-kubectl -n cloudops-academy get services
-kubectl -n cloudops-academy rollout status deployment/frontend
-kubectl -n cloudops-academy rollout status deployment/backend
+kubectl -n bookingkg get deployments
+kubectl -n bookingkg get pods
+kubectl -n bookingkg get services
+kubectl -n bookingkg rollout status deployment/frontend
+kubectl -n bookingkg rollout status deployment/backend
 ```
 
 - обе replicas каждого Deployment имеют status `Ready`;
@@ -473,7 +474,7 @@ kubectl get service -n ingress-nginx
 ### Требуется
 
 1. Использовать subdomain, выданный преподавателем, например
-   `student07.cloudops.example.com`.
+   `student07.bookingkg.example.com`.
 2. Использовать учебную Route 53 hosted zone или delegated student hosted zone.
 3. Установить ExternalDNS с помощью Kubernetes manifests или Helm.
 4. Использовать IRSA/Pod Identity вместо AWS keys в Pod.
@@ -594,8 +595,8 @@ checkout
 Студент демонстрирует:
 
 ```bash
-kubectl -n cloudops-academy rollout history deployment/frontend
-kubectl -n cloudops-academy rollout undo deployment/frontend
+kubectl -n bookingkg rollout history deployment/frontend
+kubectl -n bookingkg rollout undo deployment/frontend
 ```
 
 Также студент должен объяснить:
@@ -636,12 +637,13 @@ kubectl -n cloudops-academy rollout undo deployment/frontend
 6. Локальное приложение на `http://localhost:8080`.
 7. Облачное приложение по AWS Load Balancer URL.
 8. HTTPS custom domain, если domain был предоставлен или выполнен как bonus.
-9. Регистрацию нового пользователя.
-10. Прохождение assessment и сохранение score.
-11. Backend/RDS connectivity.
-12. Удаление Pod и автоматическое восстановление.
-13. Rollout или rollback.
-14. Отсутствие secrets в Git.
+9. Регистрацию и вход нового пользователя.
+10. Поиск тура, проверку доступности и создание бронирования.
+11. Добавление направления в избранное и отмену бронирования.
+12. Backend/RDS connectivity.
+13. Удаление Pod и автоматическое восстановление.
+14. Rollout или rollback.
+15. Отсутствие secrets в Git.
 
 ---
 
@@ -703,7 +705,7 @@ kubectl -n cloudops-academy rollout undo deployment/frontend
 - [ ] screenshot Route 53 record, если используется custom domain;
 - [ ] screenshot valid TLS certificate, если используется custom domain;
 - [ ] screenshot application dashboard;
-- [ ] screenshot assessment/leaderboard;
+- [ ] screenshot каталога и личного кабинета с бронированием;
 - [ ] результат `/api/health`;
 - [ ] краткая cost report;
 - [ ] подтверждение cleanup после проверки.
