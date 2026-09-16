@@ -7,7 +7,7 @@
 application layer, containers, cloud infrastructure, Kubernetes и CI/CD в одну
 воспроизводимую систему.
 
-Студент получает только repository `bookingkg-capstone-project-starter`. Этот repository
+Студент получает только repository `bookingkg-capstone-project-student`. Этот repository
 с эталонной инфраструктурой студентам не выдаётся.
 
 ## Рекомендуемый формат

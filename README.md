@@ -1,4 +1,4 @@
-# BookingKG — DevOps Capstone
+# BookingKG — Teacher Reference
 
 BookingKG — сервис бронирования путешествий по Кыргызстану и итоговый проект
 по Docker, Kubernetes, Terraform, AWS и CI/CD.

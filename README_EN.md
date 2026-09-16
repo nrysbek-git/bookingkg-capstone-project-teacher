@@ -1,4 +1,4 @@
-# BookingKG — DevOps Capstone
+# BookingKG — Teacher Reference
 
 BookingKG is a travel-booking application and a complete DevOps capstone using
 React, Node.js, PostgreSQL, Docker, Kubernetes, Terraform, AWS and GitHub Actions.
