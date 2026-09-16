@@ -38,8 +38,11 @@ resource "aws_iam_role" "github_actions" {
   })
 }
 
-# This role manages this project's AWS infrastructure. Tighten the policy further
-# if the account contains workloads that are not isolated from this project.
+# EDUCATIONAL SANDBOX ONLY: AdministratorAccess is intentionally retained so a
+# short-lived, isolated student account can create and destroy the complete lab.
+# This is NOT least privilege and must not be used in a shared or production
+# account. Production implementations must separate the Terraform role from the
+# application deploy role and scope both roles to project-specific resources.
 resource "aws_iam_role_policy_attachment" "github_actions" {
   count      = var.github_repository == "" ? 0 : 1
   role       = aws_iam_role.github_actions[0].name

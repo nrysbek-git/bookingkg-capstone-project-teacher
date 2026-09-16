@@ -7,7 +7,7 @@
 application layer, containers, cloud infrastructure, Kubernetes и CI/CD в одну
 воспроизводимую систему.
 
-Студент получает только repository `bookingkg-capstone-starter`. Этот repository
+Студент получает только repository `bookingkg-capstone-project-starter`. Этот repository
 с эталонной инфраструктурой студентам не выдаётся.
 
 ## Рекомендуемый формат
@@ -29,6 +29,11 @@ application layer, containers, cloud infrastructure, Kubernetes и CI/CD в од
 - окно проверки и обязательный cleanup deadline.
 
 Студент не должен покупать domain или использовать личную банковскую карту.
+
+Reference Terraform использует `AdministratorAccess` только в отдельном
+одноразовом учебном AWS sandbox. Это не является least privilege. В общем или
+production account преподаватель обязан выдать отдельные ограниченные роли для
+Terraform и application deployment либо исключить cloud apply из задания.
 
 ## Границы помощи
 
@@ -54,3 +59,12 @@ application layer, containers, cloud infrastructure, Kubernetes и CI/CD в од
 Зафиксируйте баллы и feedback до cleanup. Затем убедитесь, что дорогостоящие AWS
 resources удалены. Не требуйте удаления общего course infrastructure или remote
 state до подтверждения преподавателя.
+
+## Проверка публичного входа
+
+Reference solution устанавливает ingress-nginx Helm chart версии `4.15.1`.
+Frontend и backend остаются внутренними `ClusterIP` Services. После появления
+external address у Service `ingress-nginx-controller` примените
+`kubernetes/ingress.yml` и проверьте через один адрес главную страницу и
+`/api/health`. Перед занятием сверяйте совместимость закреплённой версии chart с
+выбранной версией Kubernetes.

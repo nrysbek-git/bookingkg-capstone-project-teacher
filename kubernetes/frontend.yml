@@ -39,7 +39,7 @@ metadata:
   name: frontend
   namespace: bookingkg
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: frontend
   ports:

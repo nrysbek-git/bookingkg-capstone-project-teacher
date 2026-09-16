@@ -4,21 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Nargiza Rysbek kyzy",
+  "license": "MIT",
   "dependencies": {
-    "bcrypt-nodejs": "0.0.3",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1",
-    "knex": "^0.95.1",
-    "nodemon": "^2.0.7",
-    "pg": "^8.5.1",
-    "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.1.6"
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.3.0",
+    "pg": "^8.5.1"
   }
 }

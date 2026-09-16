@@ -16,6 +16,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "eks_cluster_version" {
+  description = "Amazon EKS Kubernetes minor version. Verify current AWS standard support before every lab run."
+  type        = string
+  default     = "1.35"
+}
+
 variable "vpc_cidr" {
   description = "CIDR block allocated to the VPC."
   type        = string

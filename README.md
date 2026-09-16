@@ -81,3 +81,35 @@ flowchart LR
 - [REFERENCE_SOLUTION.md](REFERENCE_SOLUTION.md) — эталонная реализация.
 
 После демонстрации платные AWS-ресурсы удаляются через `terraform destroy`.
+
+### Версия Amazon EKS
+
+Учебная конфигурация по умолчанию использует Kubernetes `1.35`, находящийся в
+стандартной поддержке Amazon EKS на момент проверки 15 сентября 2026 года.
+Значение задаётся переменной `eks_cluster_version` в
+`terraform/terraform.tfvars`. Перед каждым созданием кластера проверьте список
+поддерживаемых версий в официальной документации AWS: устаревшая версия может
+перейти в платную extended support или стать недоступной для новых кластеров.
+
+> **IAM warning:** reference Terraform retains `AdministratorAccess` only for a
+> disposable, isolated educational AWS sandbox. This is not least privilege.
+> Shared and production accounts must use separate, narrowly scoped Terraform
+> and application deployment roles.
+
+## Публичный доступ через Ingress
+
+Frontend Service имеет тип `ClusterIP` и не публикуется напрямую. Единую
+публичную точку входа создаёт ingress-nginx controller chart `4.15.1`:
+
+```bash
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --version 4.15.1 \
+  --namespace ingress-nginx --create-namespace --wait
+kubectl get service -n ingress-nginx ingress-nginx-controller
+kubectl apply -f kubernetes/ingress.yml
+```
+
+Полученный external address должен открывать `/` и `/api/health`. Перед новым
+запуском лаборатории сверяйте закреплённую версию с официальной таблицей
+совместимости ingress-nginx.

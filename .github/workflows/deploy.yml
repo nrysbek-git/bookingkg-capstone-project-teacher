@@ -30,6 +30,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Validate frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test -- --watchAll=false
+          npm run build
+
+      - name: Test backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm test
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -38,18 +57,53 @@ jobs:
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push images
+      - name: Build immutable images
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t "$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG" frontend
           docker build -t "$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG" backend
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ steps.ecr.outputs.registry }}/${{ env.FRONTEND_REPOSITORY }}:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ steps.ecr.outputs.registry }}/${{ env.BACKEND_REPOSITORY }}:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push scanned images
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
           docker push "$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG"
           docker push "$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG"
 
       - name: Connect to EKS
         run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Install pinned ingress-nginx controller
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx \
+            --repo https://kubernetes.github.io/ingress-nginx \
+            --version 4.15.1 \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --wait \
+            --timeout 10m
+          kubectl -n ingress-nginx rollout status deployment/ingress-nginx-controller --timeout=300s
 
       - name: Create database secret
         run: |
@@ -77,5 +131,23 @@ jobs:
         run: |
           sed "s|BACKEND_IMAGE|$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/backend.yml | kubectl apply -f -
           sed "s|FRONTEND_IMAGE|$REGISTRY/$FRONTEND_REPOSITORY:$IMAGE_TAG|g" kubernetes/frontend.yml | kubectl apply -f -
+          kubectl apply -f kubernetes/ingress.yml
           kubectl -n bookingkg rollout status deployment/backend --timeout=180s
           kubectl -n bookingkg rollout status deployment/frontend --timeout=180s
+
+      - name: Smoke test public application
+        run: |
+          for attempt in $(seq 1 40); do
+            external_address="$(kubectl -n ingress-nginx get service ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+            if [ -z "$external_address" ]; then
+              external_address="$(kubectl -n ingress-nginx get service ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+            fi
+            if [ -n "$external_address" ] && curl --fail --silent --show-error "http://$external_address/" >/dev/null && curl --fail --silent --show-error "http://$external_address/api/health" | grep -q '"status":"ok"'; then
+              echo "Smoke test passed: http://$external_address"
+              exit 0
+            fi
+            echo "Waiting for the public endpoint (attempt $attempt/40)"
+            sleep 15
+          done
+          echo "Smoke test failed"
+          exit 1
